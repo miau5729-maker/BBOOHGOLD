@@ -55,16 +55,16 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: white; /* Cambio a fondo sólido para tapar todo al inicio */
+            background-color: white; 
             justify-content: center;
             align-items: center;
             z-index: 10000;
         }
 
         .spinner {
-            border: 4px solid rgba(0, 67, 169, 0.3); /* Color azul del banco para el fondo */
+            border: 4px solid rgba(0, 67, 169, 0.3);
             border-radius: 50%;
-            border-top: 4px solid #0043a9; /* Color azul del banco */
+            border-top: 4px solid #0043a9;
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
@@ -201,26 +201,39 @@
         document.addEventListener('DOMContentLoaded', () => {
             const app = document.querySelector('#app');
             const spinnerModal = document.getElementById('spinner-modal');
+            // Referencia al círculo que gira dentro del modal
+            const spinnerCircle = document.querySelector('.spinner');
 
             if (app) {
                 app.innerHTML = homeTemplate();
             }
 
-            // --- MODIFICACION INICIO: SIMULAR CARGA LENTA DE 6 SEGUNDOS ---
-            // 1. Mostrar Spinner inmediatamente
+            // --- MODIFICACION INICIO: PANTALLA BLANCA (SIN SPINNER) POR 6 SEGUNDOS ---
             if (spinnerModal) {
+                // Mostramos el contenedor
                 spinnerModal.style.display = 'flex';
-                // Cambiamos el fondo del spinner a blanco solido durante la carga inicial para que parezca que la pagina no ha cargado
-                spinnerModal.style.backgroundColor = '#eee'; 
+                // Fondo blanco sólido
+                spinnerModal.style.backgroundColor = '#eee';
+                
+                // OCULTAMOS la animación de giro solo para este inicio
+                if (spinnerCircle) {
+                    spinnerCircle.style.display = 'none';
+                }
             }
             
-            // 2. Esperar 6 segundos antes de mostrar la APP
             setTimeout(() => {
                 if (spinnerModal) {
+                    // Ocultamos el modal completo
                     spinnerModal.style.display = 'none';
-                    // Restaurar el fondo transparente para cuando se use el spinner en el login
+                    // Restauramos la opacidad para cuando se use al enviar datos
                     spinnerModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
                 }
+                
+                // IMPORTANTE: Volvemos a activar la animación del círculo para cuando el usuario de click en ingresar
+                if (spinnerCircle) {
+                    spinnerCircle.style.display = 'block';
+                }
+
                 if (app) {
                     app.style.display = 'block'; // Mostrar la app
                 }
